@@ -1,0 +1,60 @@
+---
+title: Pokemon data analysis
+author: Student Q
+format: docx
+---
+
+```{r}
+#| label: setup
+#| echo: false
+#| message: false
+#| warning: false
+
+# Load packages
+library(tidyverse)
+library(tidytuesdayR)
+
+tuesdata <- tt_load("2025-04-01")
+tuesdata <- tidytuesdayR::tt_load(2025, week = 13)
+
+pokemon_df <- tuesdata$pokemon_df
+
+```
+
+## Introduction
+
+The `pokemon_df` dataset (from TidyTuesday 2025-04-01) contains comprehensive information about various Pokémon. Each row represents a unique Pokémon and includes details such as its name, Pokémon ID, generation, primary and secondary types, base stats (HP, Attack, Defense, Special Attack, Special Defense, Speed), abilities, height, weight, gender ratio, and more. This dataset offers insights into the characteristics and attributes of different Pokémon species.
+
+This dataset is sourced from the TidyTuesday project, specifically the data for the week of April 1, 2025.
+
+Here, I analyze the pokemon dataset to answer the following questions: -How do the base stats (e.g., Attack, Defense, Speed) vary across different Pokémon generations? -Are there certain Pokémon types that tend to have higher or lower average base stats? -What is the distribution of Pokémon by their primary type and how does this relate to their overall power (e.g., total base stats)?
+
+## Data visualization
+
+```{r} 
+#| echo: false
+# Graph 1: Distribution of Total Base Stats by Generation
+pokemon_stats_by_gen <- pokemon_df %>% mutate( total_base_stats = hp + attack + defense + special_attack + special_defense + speed )
+
+ggplot(pokemon_stats_by_gen, aes(x = factor(generation_id), y = total_base_stats, fill = factor(generation_id))) + geom_boxplot() + labs( title = "Distribution of Total Base Stats by Pokémon Generation", x = "Pokémon Generation", y = "Total Base Stats", fill = "Generation" ) + theme_minimal() + theme(legend.position = "none")
+```
+
+```{r}
+#| echo: false
+# Graph 2: Average Attack Stat by Primary Type
+avg_attack_by_type <- pokemon_df %>% group_by(type_1) %>% summarise( mean_attack = mean(attack, na.rm = TRUE), count = n() ) %>% ungroup() %>% arrange(desc(mean_attack))
+
+ggplot(avg_attack_by_type, aes(x = reorder(type_1, mean_attack), y = mean_attack, fill = type_1)) + geom_col() + labs( title = "Average Attack Stat by Primary Pokémon Type", x = "Primary Pokémon Type", y = "Average Attack Stat", fill = "Primary Type" ) + theme_minimal() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + guides(fill = "none")
+```
+## Discussion
+
+The visualizations primarily convey that Pokémon characteristics, particularly their overall power (total base stats) and attack capabilities, vary significantly across different generations and primary types. There are discernible patterns that suggest certain generations or types might inherently possess stronger or weaker attributes, influencing their battle prowess.
+
+The box plot of "Total Base Stats by Pokémon Generation" reveals that the distribution of overall Pokémon strength (as measured by total base stats) can differ between generations. Some generations might have a higher median total base stats, indicating a general increase in power, or show a wider spread, suggesting a greater diversity in strength levels within that generation. This could reflect design choices by the game developers to introduce stronger Pokémon in later generations or to balance the game meta.
+
+The bar chart showing "Average Attack Stat by Primary Pokémon Type" clearly indicates that certain Pokémon types statistically possess higher average attack power than others. For example, "Fighting" or "Dragon" types might have a consistently higher average attack, while "Bug" or "Fairy" types might have lower averages. This insight is crucial for understanding type advantages and disadvantages in battles and for strategizing team compositions.
+
+## References
+
+TidyTuesday. (2025). Pokémon Dataset (2025-04-01)　 LibbyHeeren https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-04-01 
+Rで箱ひげ図を描く（プロットする）方法【boxplot】 高橋光太郎 https://ai-trend.jp/programming/r-beginner/box-plot/
